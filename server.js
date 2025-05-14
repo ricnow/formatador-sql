@@ -98,6 +98,6 @@ app.post('/formatar', (req, res) => {
 });
 
 // Inicia servidor
-app.listen(PORT, '10.10.10.5', () => {
-    console.log(`Servidor rodando em http://10.10.10.5:${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
