@@ -13,7 +13,14 @@
     <div class="container">
         <h1>Formatador de SQL</h1>
         <div class="input-area">
-            <textarea id="input-sql" placeholder="Cole aqui sua SQL" rows="10"></textarea>
+            <div class="sql-editor">
+                <div class="scroll-sync">
+                    <div class="line-numbers" id="line-numbers"></div>
+                    <div class="scroll-container">
+                        <textarea id="input-sql" placeholder="Cole aqui sua SQL" rows="10"></textarea>
+                    </div>
+                </div>
+            </div>
             <div class="file-upload">
                 <label for="upload-input" class="upload-label">
                     <i class="fas fa-file-upload"></i> Importar .SQL

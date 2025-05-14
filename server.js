@@ -93,9 +93,17 @@ app.post('/formatar', (req, res) => {
         return res.status(400).json({ erro: 'SQL não fornecida' });
     }
 
-    const formatada = formatarSQLPersonalizado(sql);
-    res.json({ formatada });
+    try {
+        const formatada = formatarSQLPersonalizado(sql);
+        res.json({ formatada });
+    } catch (erro) {
+        console.error('Erro ao formatar SQL:', erro.message);
+        res.status(400).json({
+            erro: `Erro ao processar SQL: ${erro.message}`,
+        });
+    }
 });
+
 
 // Inicia servidor
 app.listen(PORT, () => {

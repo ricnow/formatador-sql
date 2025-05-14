@@ -16,9 +16,18 @@
                 });
 
                 const dados = await resposta.json();
-                adicionarBlocoSQL(dados.formatada);
+
+                if (resposta.ok && dados.formatada) {
+                    adicionarBlocoSQL(dados.formatada);
+                } else if (dados.erro) {
+                    mostrarErro(dados.erro); // Mostra o erro real retornado pelo servidor
+                } else {
+                    mostrarErro("Erro ao formatar SQL. Verifique se o código está válido.");
+                }
+                
             } catch (erro) {
                 console.error('Erro na requisição:', erro);
+                mostrarErro("Erro de comunicação com o servidor. Tente novamente.");
             }
         });
     }
@@ -34,8 +43,6 @@
             const inputArea = document.getElementById('input-sql');
             if (inputArea) {
                 inputArea.value = text;
-
-                // Aguarda o preenchimento e aciona o botão de formatar
                 formatarBtn?.click();
             }
         });
@@ -63,7 +70,6 @@ function adicionarBlocoSQL(sqlFormatado) {
     pre.appendChild(code);
     container.appendChild(pre);
 
-    // Botão de copiar
     const copiarBtn = document.createElement('button');
     copiarBtn.classList.add('icon-btn', 'copiar-btn');
     copiarBtn.innerHTML = '<i class="fas fa-copy"></i>';
@@ -79,14 +85,13 @@ function adicionarBlocoSQL(sqlFormatado) {
         });
     };
 
-    // Botão de remover
     const removerBtn = document.createElement('button');
     removerBtn.classList.add('icon-btn', 'remover-btn');
     removerBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
     removerBtn.title = 'Remover';
     removerBtn.onclick = () => {
         container.classList.add('fade-out');
-        setTimeout(() => container.remove(), 300); // efeito suave
+        setTimeout(() => container.remove(), 300);
     };
 
     const botoes = document.createElement('div');
@@ -95,10 +100,43 @@ function adicionarBlocoSQL(sqlFormatado) {
     botoes.appendChild(removerBtn);
 
     container.appendChild(botoes);
-
-    // Adiciona o bloco ao topo da área de resultado
     document.getElementById('resultado').prepend(container);
-
-    // Realça a sintaxe SQL com PrismJS
     Prism.highlightElement(code);
 }
+
+
+function mostrarErro(mensagem) {
+    const resultado = document.getElementById('resultado');
+    const erroEl = document.createElement('div');
+    erroEl.classList.add('erro-sql');
+    erroEl.textContent = mensagem;
+
+    const fecharBtn = document.createElement('button');
+    fecharBtn.innerHTML = '<i class="fas fa-times"></i>';
+    fecharBtn.classList.add('fechar-erro');
+    fecharBtn.onclick = () => erroEl.remove();
+
+    erroEl.appendChild(fecharBtn);
+    resultado.prepend(erroEl);
+
+    setTimeout(() => erroEl.remove(), 5000);
+}
+
+const textarea = document.getElementById('input-sql');
+const lineNumbers = document.getElementById('line-numbers');
+const scrollSync = document.querySelector('.scroll-sync');
+
+function atualizarNumerosDeLinha() {
+    const totalLinhas = textarea.value.split('\n').length;
+    lineNumbers.innerHTML = Array.from({ length: totalLinhas }, (_, i) => i + 1).join('<br>');
+}
+
+textarea.addEventListener('input', atualizarNumerosDeLinha);
+
+// Sincronizar scroll da numeração
+textarea.addEventListener('scroll', () => {
+    lineNumbers.scrollTop = textarea.scrollTop;
+});
+
+// Atualizar ao carregar
+atualizarNumerosDeLinha();
