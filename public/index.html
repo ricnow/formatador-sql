@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Formatador de SQL</title>
+    <link rel="stylesheet" href="css/prism.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- FontAwesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Formatador de SQL</h1>
+        <div class="input-area">
+            <textarea id="input-sql" placeholder="Cole aqui sua SQL" rows="10"></textarea>
+            <div class="file-upload">
+                <label for="upload-input" class="upload-label">
+                    <i class="fas fa-file-upload"></i> Importar .SQL
+                </label>
+                <input type="file" id="upload-input" accept=".sql" hidden>
+            </div>
+            <div class="botoes-superiores">
+                <button id="formatar-btn"><i class="fas fa-magic"></i> Formatar</button>
+                <button id="toggle-theme"><i class="fas fa-adjust"></i> Tema</button>
+            </div>
+        </div>
+        <div id="resultado" class="resultado-area"></div>
+    </div>
+
+    <script src="js/prism.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+﻿:root {
+    --cor-fundo: #f8f9fa;
+    --cor-texto: #212529;
+    --cor-borda: #dee2e6;
+    --cor-destaque: #6f42c1;
+    --cor-clara: #ffffff;
+    --cor-escura: #343a40;
+    --sombra: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    margin: 0;
+    padding: 2rem;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+body.dark-mode .bloco-sql {
+    background-color: #333;
+    border: 1px solid #444;
+}
+
+body.dark-mode .language-sql {
+    color: #e0e0e0;
+}
+
+body.dark-mode .botoes button {
+    color: #fff;
+    background-color: #444;
+}
+
+body.dark-mode .botoes button:hover {
+    background-color: #555;
+}
+
+body.dark-mode textarea#input-sql {
+    background-color: #1e1e1e;
+    color: #f4f4f4;
+    border-color: #555;
+}
+body.dark-mode textarea#input-sql:focus {
+    border-color: #9a86fd;
+    box-shadow: 0 0 0 3px rgba(154, 134, 253, 0.2);
+}
+.botoes-superiores {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    color: var(--cor-destaque);
+    margin-bottom: 1.5rem;
+}
+
+textarea#input-sql {
+    width: 100%;
+    max-width: 100%;
+    resize: none; /* Impede redimensionamento */
+    padding: 1rem;
+    font-size: 1rem;
+    font-family: monospace;
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    margin-bottom: 1rem;
+}
+
+textarea#input-sql:focus {
+    border-color: var(--cor-destaque);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+
+button {
+    padding: 10px 15px;
+    margin: 0.5rem 0.25rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    background-color: #6a1b9a;
+    color: white;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    color: #8e24aa;
+}
+
+button#formatar-btn {
+    background-color: var(--cor-destaque);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: block;
+    margin-left: auto;
+}
+
+button#formatar-btn:hover {
+    background-color: #5a379f;
+}
+
+button#toggle-theme {
+    background-color: var(--cor-destaque);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: block;
+}
+
+button#toggle-theme:hover {
+    background-color: #5a379f;
+}
+
+input[type="file"] {
+    margin-top: 1rem;
+}
+
+.bloco-sql {
+    position: relative;
+    background-color: var(--cor-clara);
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.bloco-sql.fade-in {
+    animation: aparecer 0.3s ease forwards;
+}
+
+.bloco-sql.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.botoes {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--cor-texto);
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+.icon-btn:hover {
+    transform: scale(1.2);
+    color: #8e44ad;
+}
+#input-sql, .bloco-sql {
+    width: 100%;
+    max-width: 100%;
+}
+
+pre {
+    margin: 0;
+    overflow-x: auto;
+}
+
+/* PrismJS personalização */
+code[class*="language-"],
+pre[class*="language-"] {
+    background: none !important;
+    color: var(--cor-escura);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.token.keyword {
+    color: var(--cor-destaque) !important;
+    font-weight: bold;
+}
+
+.token.comment {
+    color: #6c757d !important;
+    font-style: italic;
+}
+
+.token.string {
+    color: #d63384 !important;
+}
+
+.token.number {
+    color: #198754 !important;
+}
+
+.token.operator {
+    color: #0d6efd !important;
+}
+
+/* Responsivo */
+@media (min-width: 768px) {
+    #input-sql, .bloco-sql {
+        width: 90%;
+        margin: 0 auto;
+    }
+}
