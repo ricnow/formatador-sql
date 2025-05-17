@@ -105,8 +105,10 @@ function adicionarBlocoSQL(sqlFormatado) {
 }
 
 
-function mostrarErro(mensagem) {
+function mostrarErro(mensagemOriginal) {
     const resultado = document.getElementById('resultado');
+    const mensagem = traduzirMensagemErro(mensagemOriginal);
+
     const erroEl = document.createElement('div');
     erroEl.classList.add('erro-sql');
     erroEl.textContent = mensagem;
@@ -114,13 +116,79 @@ function mostrarErro(mensagem) {
     const fecharBtn = document.createElement('button');
     fecharBtn.innerHTML = '<i class="fas fa-times"></i>';
     fecharBtn.classList.add('fechar-erro');
-    fecharBtn.onclick = () => erroEl.remove();
+    fecharBtn.onclick = () => {
+        erroEl.remove();
+        limparMarcacaoErro(); // Remove a marcação se o erro for fechado
+    };
 
     erroEl.appendChild(fecharBtn);
     resultado.prepend(erroEl);
 
+    // Destaca a linha com erro (garante tempo para renderizar os números)
+    setTimeout(() => {
+        const linhaErro = extrairLinhaErro(mensagemOriginal);
+        if (linhaErro !== null) {
+            marcarLinhaErro(linhaErro);
+        }
+    }, 50);
+
     setTimeout(() => erroEl.remove(), 5000);
 }
+
+function traduzirMensagemErro(mensagemOriginal) {
+    const mensagem = mensagemOriginal.replace(/\n/g, ' ').trim();
+
+    const erroSimbolo = mensagem.match(/\'/i);
+    if (erroSimbolo) {
+        const [simbolo] = erroSimbolo;
+        return `Erro de sintaxe: símbolo inesperado ' ${simbolo} '. Verifique se há aspas, vírgulas ou parênteses na linha indicada.`;
+    }
+
+    const erroToken = mensagem.match(/Unexpected token (.+?) at line (\d+)/i);
+    if (erroToken) {
+        const [, token, linha] = erroToken;
+        return `Erro de sintaxe: token inesperado '${token}' na linha ${linha}. Verifique a estrutura do seu SQL.`;
+    }
+
+    const erroEsperado = mensagem.match(/Expected (.+?) but found (.+?) at line (\d+)/i);
+    if (erroEsperado) {
+        const [, esperado, encontrado, linha] = erroEsperado;
+        return `Erro: era esperado '${esperado}', mas foi encontrado '${encontrado}' na linha ${linha}. Corrija a ordem dos elementos no SQL.`;
+    }
+
+    const erroNaoFechado = mensagem.match(/Unclosed (.+?) at line (\d+)/i);
+    if (erroNaoFechado) {
+        const [, elemento, linha] = erroNaoFechado;
+        return `Erro: '${elemento}' não foi fechado corretamente na linha ${linha}. Verifique se há parênteses, aspas ou comentários sem fechamento.`;
+    }
+
+    if (/Parse error/i.test(mensagem)) {
+        return `Erro de análise na estrutura do SQL. Verifique a sintaxe e tente novamente.`;
+    }
+
+    return `Erro ao processar SQL. Verifique se a sintaxe está correta ou se o dialecto SQL é suportado.`;
+}
+
+function extrairLinhaErro(mensagem) {
+    const match = mensagem.match(/line\s+(\d+)/i);
+    return match ? parseInt(match[1], 10) : null;
+}
+
+function marcarLinhaErro(numeroLinha) {
+    const linhas = document.querySelectorAll('#line-numbers div');
+    limparMarcacaoErro();
+
+    if (numeroLinha >= 1 && numeroLinha <= linhas.length) {
+        const linha = linhas[numeroLinha - 1];
+        linha.classList.add('error-line');
+    }
+}
+
+function limparMarcacaoErro() {
+    const linhas = document.querySelectorAll('#line-numbers div.error-line');
+    linhas.forEach((linha) => linha.classList.remove('error-line'));
+}
+
 
 const textarea = document.getElementById('input-sql');
 const lineNumbers = document.getElementById('line-numbers');
@@ -128,7 +196,12 @@ const scrollSync = document.querySelector('.scroll-sync');
 
 function atualizarNumerosDeLinha() {
     const totalLinhas = textarea.value.split('\n').length;
-    lineNumbers.innerHTML = Array.from({ length: totalLinhas }, (_, i) => i + 1).join('<br>');
+    lineNumbers.innerHTML = '';
+for (let i = 1; i <= totalLinhas; i++) {
+    const linha = document.createElement('div');
+    linha.textContent = i;
+    lineNumbers.appendChild(linha);
+}
 }
 
 textarea.addEventListener('input', atualizarNumerosDeLinha);

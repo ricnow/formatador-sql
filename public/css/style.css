@@ -1,4 +1,7 @@
-﻿:root {
+﻿/* ===================
+   VARIÁVEIS GLOBAIS
+=================== */
+:root {
     --cor-fundo: #f8f9fa;
     --cor-texto: #212529;
     --cor-borda: #dee2e6;
@@ -6,6 +9,11 @@
     --cor-clara: #ffffff;
     --cor-escura: #343a40;
     --sombra: 0 2px 6px rgba(0, 0, 0, 0.1);
+    --cor-erro: #f8d7da;
+    --cor-erro-texto: #842029;
+    --cor-erro-borda: #f5c2c7;
+    --cor-hover-botao: #5a379f;
+
 }
 
 body {
@@ -332,6 +340,29 @@ pre[class*="language-"] {
     font-weight: bold;
 }
 
+#line-numbers div {
+    position: relative;
+    height: 1.4em;
+    padding-right: 4px;
+}
+
+#line-numbers div.error-line::before {
+    content: '➤';
+    color: #b30000;
+    font-weight: bold;
+    position: absolute;
+    left: -15px;
+    top: 0;
+    animation: pulse 1s infinite;
+    font-size: 14px;
+}
+
+@keyframes pulse {
+    0% { transform: translateX(0); opacity: 1; }
+    50% { transform: translateX(3px); opacity: 0.7; }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
 .sql-editor .scroll-sync {
     display: flex;
     height: 300px;
@@ -357,7 +388,7 @@ pre[class*="language-"] {
     height: 100%;
     font-family: monospace;
     font-size: 1rem;
-    line-height: 1.5;
+    line-height: 1.38;
     box-sizing: border-box;
     overflow-y: auto;
 }
