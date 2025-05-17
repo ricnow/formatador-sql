@@ -32,7 +32,7 @@ function removerAspaAntesDaVirgulaDepoisDoUltimoWhere(sql) {
 
 // Substitui os parâmetros @P1, @P2... por seus valores no final da string
 function substituirParametros(sql) {
-    const regexParametros = /@P\d+/g;
+    const regexParametros = /@P\d+\b/g;
     const parametrosEncontrados = [...sql.matchAll(regexParametros)];
     if (parametrosEncontrados.length === 0) return sql;
 
@@ -74,7 +74,7 @@ function formatarSQLPersonalizado(sql) {
 
     // 4. Formatar com sql-formatter
     let sqlFormatada = formatter.format(sqlCorrigida, {
-        language: 'sql',
+        language: 'tsql',
         indent: '    ',
         keywordCase: 'upper',
     });
