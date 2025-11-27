@@ -19,12 +19,14 @@
 
                 if (resposta.ok && dados.formatada) {
                     adicionarBlocoSQL(dados.formatada);
+                    document.getElementById('input-sql').value = '';
+                    atualizarNumerosDeLinha();
                 } else if (dados.erro) {
                     mostrarErro(dados.erro); // Mostra o erro real retornado pelo servidor
                 } else {
                     mostrarErro("Erro ao formatar SQL. Verifique se o código está válido.");
                 }
-                
+
             } catch (erro) {
                 console.error('Erro na requisição:', erro);
                 mostrarErro("Erro de comunicação com o servidor. Tente novamente.");
@@ -197,11 +199,11 @@ const scrollSync = document.querySelector('.scroll-sync');
 function atualizarNumerosDeLinha() {
     const totalLinhas = textarea.value.split('\n').length;
     lineNumbers.innerHTML = '';
-for (let i = 1; i <= totalLinhas; i++) {
-    const linha = document.createElement('div');
-    linha.textContent = i;
-    lineNumbers.appendChild(linha);
-}
+    for (let i = 1; i <= totalLinhas; i++) {
+        const linha = document.createElement('div');
+        linha.textContent = i;
+        lineNumbers.appendChild(linha);
+    }
 }
 
 textarea.addEventListener('input', atualizarNumerosDeLinha);

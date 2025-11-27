@@ -61,33 +61,151 @@ function substituirParametros(sql) {
     return sqlSemValores;
 }
 
-// Função principal de formatação
-function formatarSQLPersonalizado(sql) {
-    // 1. Remover a aspa simples após último WHERE
-    let sqlCorrigida = removerAspaAntesDaVirgulaDepoisDoUltimoWhere(sql);
+// Nova função: Parse robusto para output do Profiler (sp_prepexec)
+function parseProfilerOutput(input) {
+    const execIndex = input.search(/exec\s+sp_prepexec/i);
+    if (execIndex === -1) return null;
 
-    // 2. Corrigir aspas simples duplicadas
-    sqlCorrigida = removerAspasDuplicadas(sqlCorrigida);
+    let execPart = input.slice(execIndex);
 
-    // 3. Substituir parâmetros
-    sqlCorrigida = substituirParametros(sqlCorrigida);
+    // 1. Match @handle OUTPUT
+    const handleMatch = execPart.match(/exec\s+sp_prepexec\s+(@\w+)\s+output\s*,\s*/i);
+    if (!handleMatch) return null;
 
-    // 4. Formatar com sql-formatter
-    let sqlFormatada = formatter.format(sqlCorrigida, {
-        language: 'tsql',
-        indent: '    ',
-        keywordCase: 'upper',
+    let currentPos = handleMatch.index + handleMatch[0].length;
+    let remaining = execPart.slice(currentPos);
+
+    // 2. Match @params (NULL or N'...')
+    if (remaining.startsWith('NULL')) {
+        currentPos += 4;
+    } else {
+        const strMatch = remaining.match(/^(N?'(?:''|[^'])*')/);
+        if (strMatch) {
+            currentPos += strMatch[0].length;
+        } else {
+            return null;
+        }
+    }
+
+    // Consume comma
+    remaining = execPart.slice(currentPos);
+    const commaMatch = remaining.match(/^\s*,\s*/);
+    if (!commaMatch) return null;
+    currentPos += commaMatch[0].length;
+    remaining = execPart.slice(currentPos);
+
+    // 3. Match @stmt (The SQL)
+    const stmtMatch = remaining.match(/^(N?'(?:''|[^'])*')/);
+    if (!stmtMatch) return null;
+
+    let sqlLiteral = stmtMatch[1];
+    currentPos += stmtMatch[0].length;
+    remaining = execPart.slice(currentPos);
+
+    // 4. Match remaining parameters (if any)
+    let values = [];
+    if (remaining.match(/^\s*,\s*/)) {
+        let paramsStr = remaining.replace(/^\s*,\s*/, '');
+        const newlineIndex = paramsStr.indexOf('\n');
+        if (newlineIndex !== -1) {
+            paramsStr = paramsStr.substring(0, newlineIndex);
+        }
+        values = paramsStr.split(',').map(v => v.trim());
+    }
+
+    // Clean SQL
+    let sql = sqlLiteral.replace(/^N?'|'$/g, '');
+    sql = sql.replace(/''/g, "'");
+
+    return { sql, values };
+}
+
+// Substitui parâmetros usando valores extraídos explicitamente
+function substituirParametrosComValores(sql, values) {
+    if (!values || values.length === 0) return sql;
+
+    // Encontrar todos os parâmetros @P1, @P2...
+    const regexParametros = /@P\d+\b/g;
+    const parametrosEncontrados = [...sql.matchAll(regexParametros)].map(m => m[0]);
+
+    // Criar mapa de substituição
+    let mapaSubstituicao = {};
+    values.forEach((valor, index) => {
+        const nomeParametro = `@P${index + 1}`;
+        mapaSubstituicao[nomeParametro] = valor;
     });
 
+    // Ordenar chaves por tamanho decrescente para evitar substituir @P10 como @P1 + 0
+    const chavesOrdenadas = Object.keys(mapaSubstituicao).sort((a, b) => {
+        const numA = parseInt(a.slice(2));
+        const numB = parseInt(b.slice(2));
+        return numB - numA;
+    });
 
-    // 6. Quebra de linha antes de JOINs
-    sqlFormatada = sqlFormatada.replace(/\b(INNER|LEFT|RIGHT|FULL)?\s*JOIN\b/gi, match => `\n${match}`);
+    let sqlFinal = sql;
+    chavesOrdenadas.forEach(param => {
+        const valor = mapaSubstituicao[param];
+        // Substituir todas as ocorrências
+        const regex = new RegExp(param + '\\b', 'g'); // \b para garantir palavra inteira
+        sqlFinal = sqlFinal.replace(regex, valor);
+    });
 
-    return sqlFormatada;
+    return sqlFinal;
+}
+
+// Função principal de formatação
+function formatarSQLPersonalizado(sql) {
+    let sqlParaFormatar = sql;
+
+    console.log('--- Iniciando Formatação ---');
+    // Tenta fazer o parse robusto primeiro
+    const parsed = parseProfilerOutput(sql);
+
+    if (parsed) {
+        console.log('Profiler detectado!');
+        console.log('SQL Extraído:', parsed.sql);
+        console.log('Valores:', parsed.values);
+        // Se detectou Profiler, usa a lógica nova
+        sqlParaFormatar = parsed.sql;
+        sqlParaFormatar = substituirParametrosComValores(sqlParaFormatar, parsed.values);
+        console.log('SQL com Parâmetros Substituídos:', sqlParaFormatar);
+    } else {
+        console.log('Profiler NÃO detectado. Usando fallback.');
+        // Fallback para lógica antiga (se não for sp_prepexec ou falhar)
+        // 1. Remover a aspa simples após último WHERE
+        sqlParaFormatar = removerAspaAntesDaVirgulaDepoisDoUltimoWhere(sqlParaFormatar);
+
+        // 2. Corrigir aspas simples duplicadas
+        sqlParaFormatar = removerAspasDuplicadas(sqlParaFormatar);
+
+        // 3. Substituir parâmetros (lógica antiga baseada em vírgulas)
+        sqlParaFormatar = substituirParametros(sqlParaFormatar);
+    }
+
+    // 4. Formatar com sql-formatter
+    try {
+        console.log('Tentando formatar com sql-formatter...');
+        let sqlFormatada = formatter.format(sqlParaFormatar, {
+            language: 'tsql',
+            indent: '    ',
+            keywordCase: 'upper',
+        });
+        console.log('Formatação bem sucedida!');
+
+        // 6. Quebra de linha antes de JOINs
+        sqlFormatada = sqlFormatada.replace(/\b(INNER|LEFT|RIGHT|FULL)?\s*JOIN\b/gi, match => `\n${match}`);
+
+        return sqlFormatada;
+    } catch (e) {
+        console.log('CATCH BLOCK REACHED! Erro no sql-formatter:', e.message);
+        console.log('Retornando SQL sem formatação devido a erro.');
+        return sqlParaFormatar;
+    }
 }
 
 // Rota de formatação
 app.post('/formatar', (req, res) => {
+    console.log('Recebido POST /formatar');
     const { sql } = req.body;
     if (!sql) {
         return res.status(400).json({ erro: 'SQL não fornecida' });
@@ -97,7 +215,7 @@ app.post('/formatar', (req, res) => {
         const formatada = formatarSQLPersonalizado(sql);
         res.json({ formatada });
     } catch (erro) {
-        console.error('Erro ao formatar SQL:', erro.message);
+        console.log('Erro ao formatar SQL:', erro.message);
         res.status(400).json({
             erro: `Erro ao processar SQL: ${erro.message}`,
         });
